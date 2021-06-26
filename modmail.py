@@ -18,14 +18,13 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    print(modmail_id)
-
     if message.guild == None:
         try:
             guild_id = int(splited_message[0], base=10)
+            current_guild = client.get_guild(guild_id)
             if guild_id in guilds:
                 found_modmail = False
-                for category in client.get_guild(guild_id).categories:
+                for category in current_guild.categories:
                     if category.name == "Modmail":
                         found_modmail = True
                         break
@@ -34,25 +33,39 @@ async def on_message(message):
                     channel_name = "{}s-mail".format(str(message.author).lower().replace("#", ""))
                     found_channel = False
 
-                    for c in client.get_guild(guild_id).channels:
+                    for c in current_guild.channels:
                         if c.name == channel_name:
                             found_channel = True
                             break
 
                     if found_channel:
                         await message.author.send("You already have a mail channel created! Your message is being sent.")
+                        mail = splited_message[1:]
+                        message = " ".join(mail)
+                        await discord.utils.get(current_guild.channels, name=channel_name).send(message)
                     else:
                         await message.author.send("We are going to create a channel for your mail then send your message.")
-                        await client.get_guild(guild_id).create_text_channel(channel_name, category = discord.utils.get(client.get_guild(guild_id).categories, name = "Modmail"))
-
-                    mail = splited_message[1:]
-                    await discord.utils.get(client.get_guild(guild_id).channels, name = channel_name).send(" ".join(mail))
-
+                        await current_guild.create_text_channel(channel_name, category = discord.utils.get(current_guild.categories, name = "Modmail"))
+                        mail = splited_message[1:]
+                        header = message.author.mention + " asks: "
+                        message = " ".join(mail)
+                        await discord.utils.get(current_guild.channels, name = channel_name).send(header + message)
                 else:
-                    await message.author.send("The guild is was valid however, there is no category for your mail yet. Please contact someone with administrative permissions to fix this.")
+                    await message.author.send("The guild id is was valid however, there is no category for your mail yet. Please contact someone with administrative permissions to fix this.")
         except:
             pass
 
+    elif message.guild != None:
+        if str(discord.utils.get(message.guild.categories, id = message.channel.category_id)) == "Modmail":
+            content_list = []
+
+            async for msg in message.channel.history(limit=None):
+                content_list.append(msg.content)
+
+            first_message = content_list[-1]
+            userid = int(first_message.split()[0].replace("<@", "").replace(">", ""))
+            user = await client.fetch_user(userid)
+            await user.send("".join(content_list[0]))
 
 @client.command()
 async def setup(ctx):
