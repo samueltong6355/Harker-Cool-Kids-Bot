@@ -72,7 +72,7 @@ async def on_message(message):
 async def setup(ctx, *args):
     roles = str(args)
 
-    if (discord.utils.get(ctx.message.guild.categories, name = "Modmail") == None):
+    if (discord.utils.get(ctx.guild.categories, name = "Modmail") == None):
         for c in roles:
             character_ascii = ord(c)
             if character_ascii != 62 and (character_ascii < 48 or character_ascii > 57):
@@ -86,10 +86,11 @@ async def setup(ctx, *args):
         if not roles:
             await ctx.send("Please give the names of the roles that should be able to see the mailbox.")
         else:
-            category = await ctx.message.guild.create_category("Modmail")
+            category = await ctx.guild.create_category("Modmail")
+            await category.set_permissions(ctx.guild.default_role, read_messages=False, send_messages=False)
             for role_id in roles:
-                await category.set_permissions(discord.utils.get(ctx.message.guild.roles, id = role_id), read_messages=False, send_messages=False)
-
+                print(role_id)
+                await category.set_permissions(discord.utils.get(ctx.guild.roles, id = role_id), read_messages=True, send_messages=True)
     else:
         await ctx.send("No need for setup! Modmail category already created!")
 
