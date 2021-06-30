@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.utils import get
 
 client = commands.Bot(command_prefix = ".")
 
@@ -67,10 +66,30 @@ async def on_message(message):
             user = await client.fetch_user(userid)
             await user.send("".join(content_list[0]))
 
+
+@commands.has_permissions(administrator=True)
 @client.command()
-async def setup(ctx):
+async def setup(ctx, *args):
+    roles = str(args)
+
     if (discord.utils.get(ctx.message.guild.categories, name = "Modmail") == None):
-        await ctx.message.guild.create_category("Modmail")
+        for c in roles:
+            character_ascii = ord(c)
+            if character_ascii != 62 and (character_ascii < 48 or character_ascii > 57):
+                roles = roles.replace(c, "")
+
+        roles = roles.split(">")[:-1]
+
+        for i in range(len(roles)):
+            roles[i] = int(roles[i])
+
+        if not roles:
+            await ctx.send("Please give the names of the roles that should be able to see the mailbox.")
+        else:
+            category = await ctx.message.guild.create_category("Modmail")
+            for role_id in roles:
+                await category.set_permissions(discord.utils.get(ctx.message.guild.roles, id = role_id), read_messages=False, send_messages=False)
+
     else:
         await ctx.send("No need for setup! Modmail category already created!")
 
