@@ -94,4 +94,4 @@ async def setup(ctx, *args):
     else:
         await ctx.send("No need for setup! Modmail category already created!")
 
-client.run("ODU1NjMwNjkyNzc0NzA3MjUy.YM1SLg.82FrE0HKEdODK3NMBwjPvO9MWos")
+client.run("token")
